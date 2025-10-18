@@ -5,8 +5,14 @@ let resourcesData = null;
 let profileData = null;
 let currentUser = null;
 
+// API Configuration
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
+    ? 'http://localhost:5000/api' 
+    : 'https://your-backend-domain.herokuapp.com/api'; // Replace with your actual backend URL
+
 // Check authentication status on page load
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('App initialized. API Base URL:', API_BASE_URL);
     checkAuthStatus();
     
     // Set up event listeners for auth forms
@@ -42,19 +48,29 @@ function checkAuthStatus() {
 
 // Show authentication pages
 function showAuth() {
-    document.getElementById('main-nav').classList.add('hidden');
-    document.getElementById('app-content').classList.add('hidden');
-    document.getElementById('auth-nav').classList.remove('hidden');
+    const mainNav = document.getElementById('main-nav');
+    const appContent = document.getElementById('app-content');
+    const authNav = document.getElementById('auth-nav');
+    
+    if (mainNav) mainNav.classList.add('hidden');
+    if (appContent) appContent.classList.add('hidden');
+    if (authNav) authNav.classList.remove('hidden');
     showSection('login');
 }
 
 // Show main application
 function showApp() {
-    document.getElementById('auth-nav').classList.add('hidden');
-    document.getElementById('login-section').classList.add('hidden');
-    document.getElementById('signup-section').classList.add('hidden');
-    document.getElementById('main-nav').classList.remove('hidden');
-    document.getElementById('app-content').classList.remove('hidden');
+    const authNav = document.getElementById('auth-nav');
+    const loginSection = document.getElementById('login-section');
+    const signupSection = document.getElementById('signup-section');
+    const mainNav = document.getElementById('main-nav');
+    const appContent = document.getElementById('app-content');
+    
+    if (authNav) authNav.classList.add('hidden');
+    if (loginSection) loginSection.classList.add('hidden');
+    if (signupSection) signupSection.classList.add('hidden');
+    if (mainNav) mainNav.classList.remove('hidden');
+    if (appContent) appContent.classList.remove('hidden');
     
     // Initialize app
     initProgressChart();
@@ -107,17 +123,28 @@ function showSection(sectionName) {
 async function handleLogin(e) {
     if (e) e.preventDefault();
     
-    const email = document.getElementById('email').value;
-    const password = document.getElementById('password').value;
+    const email = document.getElementById('email')?.value;
+    const password = document.getElementById('password')?.value;
     const messageDiv = document.getElementById('auth-message');
     
+    if (!email || !password) {
+        if (messageDiv) {
+            messageDiv.className = 'p-4 bg-red-50 text-red-700 rounded-lg';
+            messageDiv.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> Please fill in all fields';
+            messageDiv.classList.remove('hidden');
+        }
+        return;
+    }
+    
     // Show loading
-    messageDiv.className = 'p-4 bg-blue-50 text-blue-700 rounded-lg';
-    messageDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Signing in...';
-    messageDiv.classList.remove('hidden');
+    if (messageDiv) {
+        messageDiv.className = 'p-4 bg-blue-50 text-blue-700 rounded-lg';
+        messageDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Signing in...';
+        messageDiv.classList.remove('hidden');
+    }
     
     try {
-        const response = await fetch('http://localhost:5000/api/auth/login', {
+        const response = await fetch(`${API_BASE_URL}/auth/login`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -136,18 +163,25 @@ async function handleLogin(e) {
             localStorage.setItem('user', JSON.stringify(data.user));
             currentUser = data.user;
             
-            messageDiv.className = 'p-4 bg-green-50 text-green-700 rounded-lg';
-            messageDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Login successful!';
+            if (messageDiv) {
+                messageDiv.className = 'p-4 bg-green-50 text-green-700 rounded-lg';
+                messageDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Login successful!';
+            }
             
             // Show main app
             showApp();
         } else {
-            messageDiv.className = 'p-4 bg-red-50 text-red-700 rounded-lg';
-            messageDiv.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i> ${data.error}`;
+            if (messageDiv) {
+                messageDiv.className = 'p-4 bg-red-50 text-red-700 rounded-lg';
+                messageDiv.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i> ${data.error || 'Login failed'}`;
+            }
         }
     } catch (error) {
-        messageDiv.className = 'p-4 bg-red-50 text-red-700 rounded-lg';
-        messageDiv.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> Network error. Please try again.';
+        console.error('Login error:', error);
+        if (messageDiv) {
+            messageDiv.className = 'p-4 bg-red-50 text-red-700 rounded-lg';
+            messageDiv.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> Network error. Please check if backend is running.';
+        }
     }
 }
 
@@ -155,26 +189,39 @@ async function handleLogin(e) {
 async function handleSignup(e) {
     if (e) e.preventDefault();
     
-    const name = document.getElementById('name').value;
-    const email = document.getElementById('signup-email').value;
-    const password = document.getElementById('signup-password').value;
+    const name = document.getElementById('name')?.value;
+    const email = document.getElementById('signup-email')?.value;
+    const password = document.getElementById('signup-password')?.value;
     const messageDiv = document.getElementById('signup-message');
     
     // Basic validation
+    if (!name || !email || !password) {
+        if (messageDiv) {
+            messageDiv.className = 'p-4 bg-red-50 text-red-700 rounded-lg';
+            messageDiv.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> Please fill in all fields';
+            messageDiv.classList.remove('hidden');
+        }
+        return;
+    }
+    
     if (password.length < 6) {
-        messageDiv.className = 'p-4 bg-red-50 text-red-700 rounded-lg';
-        messageDiv.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> Password must be at least 6 characters long';
-        messageDiv.classList.remove('hidden');
+        if (messageDiv) {
+            messageDiv.className = 'p-4 bg-red-50 text-red-700 rounded-lg';
+            messageDiv.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> Password must be at least 6 characters long';
+            messageDiv.classList.remove('hidden');
+        }
         return;
     }
     
     // Show loading
-    messageDiv.className = 'p-4 bg-blue-50 text-blue-700 rounded-lg';
-    messageDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Creating account...';
-    messageDiv.classList.remove('hidden');
+    if (messageDiv) {
+        messageDiv.className = 'p-4 bg-blue-50 text-blue-700 rounded-lg';
+        messageDiv.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Creating account...';
+        messageDiv.classList.remove('hidden');
+    }
     
     try {
-        const response = await fetch('http://localhost:5000/api/auth/signup', {
+        const response = await fetch(`${API_BASE_URL}/auth/signup`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -194,18 +241,25 @@ async function handleSignup(e) {
             localStorage.setItem('user', JSON.stringify(data.user));
             currentUser = data.user;
             
-            messageDiv.className = 'p-4 bg-green-50 text-green-700 rounded-lg';
-            messageDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Account created successfully!';
+            if (messageDiv) {
+                messageDiv.className = 'p-4 bg-green-50 text-green-700 rounded-lg';
+                messageDiv.innerHTML = '<i class="fas fa-check-circle mr-2"></i> Account created successfully!';
+            }
             
             // Show main app
             showApp();
         } else {
-            messageDiv.className = 'p-4 bg-red-50 text-red-700 rounded-lg';
-            messageDiv.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i> ${data.error}`;
+            if (messageDiv) {
+                messageDiv.className = 'p-4 bg-red-50 text-red-700 rounded-lg';
+                messageDiv.innerHTML = `<i class="fas fa-exclamation-circle mr-2"></i> ${data.error || 'Signup failed'}`;
+            }
         }
     } catch (error) {
-        messageDiv.className = 'p-4 bg-red-50 text-red-700 rounded-lg';
-        messageDiv.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> Network error. Please try again.';
+        console.error('Signup error:', error);
+        if (messageDiv) {
+            messageDiv.className = 'p-4 bg-red-50 text-red-700 rounded-lg';
+            messageDiv.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> Network error. Please check if backend is running.';
+        }
     }
 }
 
@@ -221,67 +275,81 @@ function logout() {
 function initProgressChart() {
     const ctx = document.getElementById('progressChart');
     if (ctx) {
-        const progressChart = new Chart(ctx.getContext('2d'), {
-            type: 'radar',
-            data: {
-                labels: ['Python', 'Statistics', 'ML Fundamentals', 'Data Visualization', 'Algorithms'],
-                datasets: [{
-                    label: 'Current Skills',
-                    data: [75, 60, 45, 50, 40],
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    pointBackgroundColor: 'rgba(54, 162, 235, 1)',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgba(54, 162, 235, 1)'
-                }]
-            },
-            options: {
-                scales: {
-                    r: {
-                        angleLines: {
-                            display: true
-                        },
-                        suggestedMin: 0,
-                        suggestedMax: 100
+        // Check if Chart is available
+        if (typeof Chart === 'undefined') {
+            console.warn('Chart.js not loaded');
+            return;
+        }
+        
+        try {
+            const progressChart = new Chart(ctx.getContext('2d'), {
+                type: 'radar',
+                data: {
+                    labels: ['Python', 'Statistics', 'ML Fundamentals', 'Data Visualization', 'Algorithms'],
+                    datasets: [{
+                        label: 'Current Skills',
+                        data: [75, 60, 45, 50, 40],
+                        backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                        pointBorderColor: '#fff',
+                        pointHoverBackgroundColor: '#fff',
+                        pointHoverBorderColor: 'rgba(54, 162, 235, 1)'
+                    }]
+                },
+                options: {
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 0,
+                            suggestedMax: 100
+                        }
                     }
                 }
-            }
-        });
+            });
+        } catch (error) {
+            console.error('Error initializing progress chart:', error);
+        }
     }
 }
 
 // Initialize weekly progress chart
 function initWeeklyChart(weeklyData) {
     const ctx = document.getElementById('weeklyChart');
-    if (ctx) {
-        const days = weeklyData.map(item => item.day);
-        const hours = weeklyData.map(item => item.hours);
-        
-        const weeklyChart = new Chart(ctx.getContext('2d'), {
-            type: 'bar',
-            data: {
-                labels: days,
-                datasets: [{
-                    label: 'Hours Studied',
-                    data: hours,
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Hours'
+    if (ctx && typeof Chart !== 'undefined') {
+        try {
+            const days = weeklyData.map(item => item.day);
+            const hours = weeklyData.map(item => item.hours);
+            
+            const weeklyChart = new Chart(ctx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: days,
+                    datasets: [{
+                        label: 'Hours Studied',
+                        data: hours,
+                        backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                        borderColor: 'rgba(75, 192, 192, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Hours'
+                            }
                         }
                     }
                 }
-            }
-        });
+            });
+        } catch (error) {
+            console.error('Error initializing weekly chart:', error);
+        }
     }
 }
 
@@ -297,7 +365,12 @@ function scrollToRecommendations() {
 async function loadDashboard() {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/dashboard', {
+        if (!token) {
+            showAuth();
+            return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/dashboard`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -309,10 +382,14 @@ async function loadDashboard() {
             return;
         }
         
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         dashboardData = await response.json();
         
         // Update skills
-        renderSkills(dashboardData.skills);
+        renderSkills(dashboardData.skills || []);
         
         // Update deadlines
         renderDeadlines(dashboardData.upcoming_deadlines || []);
@@ -329,6 +406,7 @@ async function loadDashboard() {
             container.innerHTML = `
                 <div class="col-span-2 p-4 bg-red-50 rounded-lg text-red-700">
                     <p>Error loading dashboard data. Please make sure the backend server is running.</p>
+                    <p class="text-sm mt-1">API URL: ${API_BASE_URL}</p>
                 </div>
             `;
         }
@@ -339,6 +417,15 @@ async function loadDashboard() {
 function renderSkills(skills) {
     const container = document.getElementById('skills-container');
     if (container) {
+        if (skills.length === 0) {
+            container.innerHTML = `
+                <div class="col-span-2 p-4 bg-yellow-50 rounded-lg text-yellow-700">
+                    <p>No skills data available</p>
+                </div>
+            `;
+            return;
+        }
+        
         container.innerHTML = skills.map(skill => `
             <div class="bg-gray-50 p-4 rounded-lg">
                 <div class="flex justify-between mb-2">
@@ -383,7 +470,12 @@ function renderDeadlines(deadlines) {
 async function loadLearningPaths() {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/learning-paths', {
+        if (!token) {
+            showAuth();
+            return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/learning-paths`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -392,6 +484,10 @@ async function loadLearningPaths() {
         if (response.status === 401) {
             logout();
             return;
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         learningPathsData = await response.json();
@@ -403,6 +499,7 @@ async function loadLearningPaths() {
             container.innerHTML = `
                 <div class="col-span-2 p-4 bg-red-50 rounded-lg text-red-700">
                     <p>Error loading learning paths. Please make sure the backend server is running.</p>
+                    <p class="text-sm mt-1">API URL: ${API_BASE_URL}</p>
                 </div>
             `;
         }
@@ -413,6 +510,15 @@ async function loadLearningPaths() {
 function renderLearningPaths(paths) {
     const container = document.getElementById('paths-container');
     if (container) {
+        if (!paths || Object.keys(paths).length === 0) {
+            container.innerHTML = `
+                <div class="col-span-2 p-4 bg-yellow-50 rounded-lg text-yellow-700">
+                    <p>No learning paths available</p>
+                </div>
+            `;
+            return;
+        }
+        
         container.innerHTML = Object.entries(paths).map(([key, path]) => `
             <div class="learning-path-card bg-white p-6 rounded-xl shadow-md border-l-4 border-blue-500">
                 <h3 class="text-xl font-semibold mb-2">${path.title}</h3>
@@ -429,7 +535,7 @@ function renderLearningPaths(paths) {
                 </div>
                 
                 <div class="space-y-2">
-                    ${path.modules.map(module => `
+                    ${(path.modules || []).map(module => `
                         <div class="flex items-center">
                             <span class="${module.completed ? 'text-green-500' : 'text-gray-400'} mr-2">
                                 <i class="fas ${module.completed ? 'fa-check-circle' : 'fa-circle'}"></i>
@@ -449,7 +555,12 @@ function renderLearningPaths(paths) {
 async function loadResources() {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/resources', {
+        if (!token) {
+            showAuth();
+            return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/resources`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -458,6 +569,10 @@ async function loadResources() {
         if (response.status === 401) {
             logout();
             return;
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         resourcesData = await response.json();
@@ -469,6 +584,7 @@ async function loadResources() {
             container.innerHTML = `
                 <div class="col-span-3 p-4 bg-red-50 rounded-lg text-red-700">
                     <p>Error loading resources. Please make sure the backend server is running.</p>
+                    <p class="text-sm mt-1">API URL: ${API_BASE_URL}</p>
                 </div>
             `;
         }
@@ -483,10 +599,10 @@ function renderResources(category) {
     let resourcesToShow = [];
     
     if (category === 'all') {
-        for (const [cat, items] of Object.entries(resourcesData)) {
-            resourcesToShow.push(...items.map(item => ({...item, category: cat})));
+        for (const [cat, items] of Object.entries(resourcesData || {})) {
+            resourcesToShow.push(...(items || []).map(item => ({...item, category: cat})));
         }
-    } else if (resourcesData[category]) {
+    } else if (resourcesData && resourcesData[category]) {
         resourcesToShow = resourcesData[category].map(item => ({...item, category: category}));
     }
     
@@ -512,7 +628,7 @@ function renderResources(category) {
                     <span class="text-xs text-gray-400 capitalize">${resource.category.replace('_', ' ')}</span>
                 </div>
             </div>
-            <a href="${resource.url}" class="text-blue-600 text-sm hover:underline">View resource</a>
+            <a href="${resource.url}" target="_blank" class="text-blue-600 text-sm hover:underline">View resource</a>
         </div>
     `).join('');
 }
@@ -545,7 +661,12 @@ function getResourceColor(type) {
 async function loadProfile() {
     try {
         const token = localStorage.getItem('token');
-        const response = await fetch('http://localhost:5000/api/profile', {
+        if (!token) {
+            showAuth();
+            return;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/profile`, {
             headers: {
                 'Authorization': `Bearer ${token}`
             }
@@ -554,6 +675,10 @@ async function loadProfile() {
         if (response.status === 401) {
             logout();
             return;
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         profileData = await response.json();
@@ -565,6 +690,7 @@ async function loadProfile() {
             container.innerHTML = `
                 <div class="p-4 bg-red-50 rounded-lg text-red-700">
                     <p>Error loading profile. Please make sure the backend server is running.</p>
+                    <p class="text-sm mt-1">API URL: ${API_BASE_URL}</p>
                 </div>
             `;
         }
@@ -575,6 +701,15 @@ async function loadProfile() {
 function renderProfile(profile) {
     const container = document.getElementById('profile-container');
     if (container) {
+        if (!profile) {
+            container.innerHTML = `
+                <div class="p-4 bg-yellow-50 rounded-lg text-yellow-700">
+                    <p>No profile data available</p>
+                </div>
+            `;
+            return;
+        }
+        
         container.innerHTML = `
             <div id="notification-area"></div>
             <div class="bg-white p-6 rounded-lg shadow-sm">
@@ -583,26 +718,26 @@ function renderProfile(profile) {
                         <i class="fas fa-user text-blue-600 text-2xl"></i>
                     </div>
                     <div>
-                        <h3 class="text-2xl font-semibold">${profile.name}</h3>
-                        <p class="text-gray-600">${profile.email}</p>
+                        <h3 class="text-2xl font-semibold">${profile.name || 'User'}</h3>
+                        <p class="text-gray-600">${profile.email || 'No email'}</p>
                     </div>
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
                     <div>
                         <h4 class="font-semibold mb-2">Learning Style</h4>
-                        <p class="capitalize">${profile.learning_style}</p>
+                        <p class="capitalize">${profile.learning_style || 'Not specified'}</p>
                     </div>
                     <div>
                         <h4 class="font-semibold mb-2">Member Since</h4>
-                        <p>${profile.joined_date}</p>
+                        <p>${profile.joined_date || 'Unknown'}</p>
                     </div>
                 </div>
                 
                 <div class="mb-6">
                     <h4 class="font-semibold mb-2">Learning Goals</h4>
                     <div class="space-y-2">
-                        ${profile.goals.map(goal => `
+                        ${(profile.goals || ['No goals set']).map(goal => `
                             <div class="flex items-center">
                                 <span class="${goal.startsWith('✓') ? 'text-green-500' : 'text-gray-400'} mr-2">
                                     <i class="fas ${goal.startsWith('✓') ? 'fa-check-circle' : 'fa-circle'}"></i>
@@ -625,7 +760,13 @@ function renderProfile(profile) {
 
 // Edit profile functionality
 function editProfile() {
-    const profile = profileData;
+    const profile = profileData || {
+        name: currentUser?.name || 'User',
+        email: currentUser?.email || '',
+        learning_style: 'visual',
+        goals: ['New learning goal']
+    };
+    
     const editForm = `
         <div class="bg-white p-6 rounded-lg shadow-sm">
             <h3 class="text-2xl font-semibold mb-6">Edit Profile</h3>
@@ -658,7 +799,7 @@ function editProfile() {
                 <div class="mb-6">
                     <label class="block text-gray-700 mb-2">Learning Goals</label>
                     <div class="space-y-2" id="goals-container">
-                        ${profile.goals.map((goal, index) => {
+                        ${(profile.goals || []).map((goal, index) => {
                             const goalText = goal.startsWith('✓ ') ? goal.substring(2) : goal;
                             const isCompleted = goal.startsWith('✓ ');
                             return `
@@ -700,6 +841,8 @@ function editProfile() {
 // Add new goal field
 function addNewGoal() {
     const container = document.getElementById('goals-container');
+    if (!container) return;
+    
     const newIndex = container.children.length;
     const newGoal = `
         <div class="flex items-center">
@@ -716,9 +859,20 @@ function addNewGoal() {
 
 // Remove goal field
 function removeGoal(index) {
-    const goals = document.querySelectorAll('#goals-container > div');
+    const container = document.getElementById('goals-container');
+    if (!container) return;
+    
+    const goals = container.querySelectorAll('div');
     if (goals.length > 1) {
         goals[index].remove();
+        // Re-index remaining goals
+        const remainingGoals = container.querySelectorAll('div');
+        remainingGoals.forEach((goalDiv, newIndex) => {
+            const checkbox = goalDiv.querySelector('.goal-checkbox');
+            const removeBtn = goalDiv.querySelector('button');
+            if (checkbox) checkbox.id = `goal-${newIndex}`;
+            if (removeBtn) removeBtn.setAttribute('onclick', `removeGoal(${newIndex})`);
+        });
     }
 }
 
@@ -727,21 +881,22 @@ function cancelEdit() {
     renderProfile(profileData);
 }
 
-// Handle profile update - FIXED: Changed from POST to PUT
+// Handle profile update
 async function handleProfileUpdate(e) {
     e.preventDefault();
     
     // Get form values
-    const name = document.getElementById('edit-name').value;
-    const learningStyle = document.getElementById('edit-style').value;
+    const name = document.getElementById('edit-name')?.value;
+    const learningStyle = document.getElementById('edit-style')?.value;
     
     // Get goals from checkboxes and inputs
     const goals = [];
-    document.querySelectorAll('#goals-container > div').forEach(goalDiv => {
+    const goalElements = document.querySelectorAll('#goals-container > div');
+    goalElements.forEach(goalDiv => {
         const checkbox = goalDiv.querySelector('.goal-checkbox');
         const input = goalDiv.querySelector('.goal-input');
-        if (input.value.trim()) {
-            const goalText = checkbox.checked ? `✓ ${input.value.trim()}` : input.value.trim();
+        if (input && input.value.trim()) {
+            const goalText = checkbox && checkbox.checked ? `✓ ${input.value.trim()}` : input.value.trim();
             goals.push(goalText);
         }
     });
@@ -761,9 +916,14 @@ async function handleProfileUpdate(e) {
         `;
         
         const token = localStorage.getItem('token');
-        // Send update to backend - FIXED: Changed method to PUT
-        const response = await fetch('http://localhost:5000/api/profile', {
-            method: 'PUT', // Changed from POST to PUT
+        if (!token) {
+            logout();
+            return;
+        }
+
+        // Send update to backend
+        const response = await fetch(`${API_BASE_URL}/profile`, {
+            method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
@@ -837,18 +997,31 @@ function showNotification(message, type = 'info') {
 async function handleRecommendationForm(e) {
     e.preventDefault();
     
-    const subjects = document.getElementById('subjects').value;
-    const goals = document.getElementById('goals').value;
-    const style = document.getElementById('style').value;
+    const subjects = document.getElementById('subjects')?.value;
+    const goals = document.getElementById('goals')?.value;
+    const style = document.getElementById('style')?.value;
+    
+    if (!subjects || !goals || !style) {
+        alert('Please fill in all fields');
+        return;
+    }
+    
+    const recommendationsContainer = document.getElementById('ai-recommendations');
+    if (!recommendationsContainer) return;
     
     // Show loading state
-    document.getElementById('ai-recommendations').innerHTML = 
+    recommendationsContainer.innerHTML = 
         '<div class="flex justify-center items-center h-40"><i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i></div>';
     
     try {
         const token = localStorage.getItem('token');
+        if (!token) {
+            logout();
+            return;
+        }
+
         // Send request to backend API
-        const response = await fetch('http://localhost:5000/api/recommend', {
+        const response = await fetch(`${API_BASE_URL}/recommend`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -866,12 +1039,16 @@ async function handleRecommendationForm(e) {
             return;
         }
         
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
         
         if (data.success) {
             // Format the response with line breaks
             const formattedResponse = data.recommendations.replace(/\n/g, '<br>');
-            document.getElementById('ai-recommendations').innerHTML = `
+            recommendationsContainer.innerHTML = `
                 <div class="p-4 bg-blue-50 rounded-lg">
                     <h5 class="font-semibold mb-2">Your Personalized Learning Path</h5>
                     <p>${formattedResponse}</p>
@@ -883,11 +1060,149 @@ async function handleRecommendationForm(e) {
         }
     } catch (error) {
         console.error('Error:', error);
-        document.getElementById('ai-recommendations').innerHTML = `
+        recommendationsContainer.innerHTML = `
             <div class="p-4 bg-red-50 rounded-lg text-red-700">
-                <p>Unable to connect to the recommendation service. Please make sure the backend server is running on port 5000.</p>
-                <p class="mt-2">Error: ${error.message}</p>
+                <p>Unable to connect to the recommendation service. Please make sure the backend server is running.</p>
+                <p class="mt-2 text-sm">API URL: ${API_BASE_URL}</p>
+                <p class="mt-1 text-sm">Error: ${error.message}</p>
             </div>
         `;
+    }
+}
+
+// Add this function to handle demo data when backend is not available
+function loadDemoData() {
+    console.log('Loading demo data...');
+    
+    // Demo dashboard data
+    dashboardData = {
+        skills: [
+            { name: 'Python', level: 75, target: 100 },
+            { name: 'Statistics', level: 60, target: 100 },
+            { name: 'ML Fundamentals', level: 45, target: 100 },
+            { name: 'Data Visualization', level: 50, target: 100 },
+            { name: 'Algorithms', level: 40, target: 100 }
+        ],
+        upcoming_deadlines: [
+            { assignment: 'Final Project', course: 'Machine Learning', deadline: '2024-01-15' },
+            { assignment: 'Quiz 3', course: 'Statistics', deadline: '2024-01-10' }
+        ],
+        weekly_progress: [
+            { day: 'Mon', hours: 2 },
+            { day: 'Tue', hours: 3 },
+            { day: 'Wed', hours: 1 },
+            { day: 'Thu', hours: 4 },
+            { day: 'Fri', hours: 2 },
+            { day: 'Sat', hours: 3 },
+            { day: 'Sun', hours: 1 }
+        ]
+    };
+    
+    // Demo learning paths
+    learningPathsData = {
+        path1: {
+            title: 'Machine Learning Fundamentals',
+            description: 'Learn the basics of machine learning and AI',
+            progress: 60,
+            modules: [
+                { name: 'Introduction to ML', duration: '2 hours', completed: true },
+                { name: 'Linear Regression', duration: '3 hours', completed: true },
+                { name: 'Classification', duration: '4 hours', completed: false },
+                { name: 'Neural Networks', duration: '5 hours', completed: false }
+            ]
+        },
+        path2: {
+            title: 'Data Science with Python',
+            description: 'Master data analysis and visualization',
+            progress: 30,
+            modules: [
+                { name: 'Pandas Basics', duration: '2 hours', completed: true },
+                { name: 'Data Cleaning', duration: '3 hours', completed: false },
+                { name: 'Matplotlib & Seaborn', duration: '4 hours', completed: false },
+                { name: 'Advanced Visualization', duration: '3 hours', completed: false }
+            ]
+        }
+    };
+    
+    // Demo resources
+    resourcesData = {
+        courses: [
+            { title: 'Python for Data Science', type: 'course', level: 'beginner', url: '#' },
+            { title: 'Machine Learning A-Z', type: 'course', level: 'intermediate', url: '#' }
+        ],
+        books: [
+            { title: 'Hands-On Machine Learning', type: 'book', level: 'intermediate', url: '#' },
+            { title: 'Python Data Science Handbook', type: 'book', level: 'advanced', url: '#' }
+        ],
+        tutorials: [
+            { title: 'Scikit-learn Tutorial', type: 'tutorial', level: 'beginner', url: '#' },
+            { title: 'TensorFlow Guide', type: 'tutorial', level: 'intermediate', url: '#' }
+        ]
+    };
+    
+    // Demo profile
+    profileData = {
+        name: currentUser?.name || 'Demo User',
+        email: currentUser?.email || 'demo@example.com',
+        learning_style: 'visual',
+        joined_date: '2024-01-01',
+        goals: [
+            '✓ Complete ML fundamentals',
+            'Learn deep learning',
+            'Build 3 projects'
+        ]
+    };
+}
+
+// Update the API_BASE_URL configuration to handle different environments
+const getApiBaseUrl = () => {
+    // If we're in development
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return 'http://localhost:5000/api';
+    }
+    
+    // If you have a specific backend domain for production, use it here
+    // For example, if your backend is deployed on Heroku:
+    // return 'https://your-app-name.herokuapp.com/api';
+    
+    // If you don't have a backend deployed yet, we'll use demo data
+    return null;
+};
+
+const API_BASE_URL = getApiBaseUrl();
+
+// Modify your fetch functions to use demo data when API is not available
+async function fetchWithFallback(url, options = {}) {
+    if (!API_BASE_URL) {
+        console.warn('No API URL configured, using demo data');
+        loadDemoData();
+        return { success: true, usingDemoData: true };
+    }
+    
+    try {
+        const fullUrl = `${API_BASE_URL}${url}`;
+        const response = await fetch(fullUrl, options);
+        
+        if (response.status === 401) {
+            logout();
+            return { success: false, error: 'Unauthorized' };
+        }
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error(`API call failed for ${url}:`, error);
+        
+        // If we're in production and the API call fails, load demo data
+        if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+            console.warn('API call failed, loading demo data');
+            loadDemoData();
+            return { success: true, usingDemoData: true };
+        }
+        
+        throw error;
     }
 }
