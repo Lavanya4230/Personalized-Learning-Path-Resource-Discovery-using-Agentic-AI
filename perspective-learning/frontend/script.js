@@ -1,7 +1,7 @@
 // ✅ Base API URL (auto-switches between local and deployed)
 const API_BASE_URL = window.location.origin.includes("localhost")
   ? "http://localhost:5000"
-  : ""; // when deployed, '' means same domain
+  : "https://personalized-learning-path-resource-i5j8.onrender.com"; // deployed backend URL
 
 // ---------- SIGN UP ----------
 async function signupUser(event) {
