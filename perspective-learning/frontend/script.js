@@ -8,7 +8,7 @@ let currentUser = null;
 // API Configuration
 const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
     ? 'http://localhost:5000/api' 
-    : 'https://your-backend-domain.herokuapp.com/api'; // Replace with your actual backend URL
+    : 'https://personalized-learning-path-resource-i5j8.onrender.com'; // Replace with your actual backend URL
 
 // Check authentication status on page load
 document.addEventListener('DOMContentLoaded', function() {
