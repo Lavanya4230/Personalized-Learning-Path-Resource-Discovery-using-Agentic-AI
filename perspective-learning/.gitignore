@@ -1,0 +1,27 @@
+# Virtual environment
+venv/
+backend/venv/
+
+# Environment variables
+.env
+backend/.env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Database and vector store
+db/
+chroma-data/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

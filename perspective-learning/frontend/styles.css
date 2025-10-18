@@ -1,0 +1,36 @@
+/* Custom styles for Perspective */
+.learning-path-card {
+    transition: all 0.3s ease;
+}
+
+.learning-path-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.resource-item {
+    border-left: 4px solid;
+    transition: all 0.2s ease;
+}
+
+.resource-item:hover {
+    background-color: #f8fafc;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c5c5c5;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}

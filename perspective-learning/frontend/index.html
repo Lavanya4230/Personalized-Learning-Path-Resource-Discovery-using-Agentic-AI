@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Perspective - Personalized Learning Path</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .learning-path-card {
+            transition: all 0.3s ease;
+        }
+        .learning-path-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        .resource-item {
+            border-left: 4px solid;
+            transition: all 0.2s ease;
+        }
+        .resource-item:hover {
+            background-color: #f8fafc;
+        }
+        html {
+            scroll-behavior: smooth;
+        }
+        .tab-button {
+            transition: all 0.3s ease;
+        }
+        .tab-button.active {
+            background-color: #3b82f6;
+            color: white;
+        }
+        .auth-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Navigation -->
+    <nav class="bg-blue-600 text-white p-4 shadow-md" id="main-nav">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-graduation-cap text-2xl"></i>
+                <h1 class="text-2xl font-bold">Perspective</h1>
+            </div>
+            <div class="flex space-x-4">
+                <a href="#" onclick="showSection('dashboard')" class="hover:underline">Dashboard</a>
+                <a href="#" onclick="showSection('learning-paths')" class="hover:underline">Learning Paths</a>
+                <a href="#" onclick="showSection('resources')" class="hover:underline">Resources</a>
+                <a href="#" onclick="showSection('profile')" class="hover:underline">Profile</a>
+                <a href="#" onclick="logout()" class="hover:underline"><i class="fas fa-sign-out-alt mr-1"></i>Logout</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Auth Navigation (Hidden by default) -->
+    <nav class="bg-blue-600 text-white p-4 shadow-md hidden" id="auth-nav">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-graduation-cap text-2xl"></i>
+                <h1 class="text-2xl font-bold">Perspective</h1>
+            </div>
+            <div class="flex space-x-4">
+                <a href="/auth/login" class="hover:underline">Login</a>
+                <a href="/auth/signup" class="hover:underline">Sign Up</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Login Section -->
+    <div id="login-section" class="auth-bg hidden">
+        <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-2xl">
+                <div>
+                    <div class="flex justify-center">
+                        <i class="fas fa-graduation-cap text-4xl text-blue-600"></i>
+                    </div>
+                    <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                        Sign in to Perspective
+                    </h2>
+                    <p class="mt-2 text-center text-sm text-gray-600">
+                        Your personalized learning journey awaits
+                    </p>
+                </div>
+                <form class="mt-8 space-y-6" id="login-form">
+                    <div class="rounded-md shadow-sm -space-y-px">
+                        <div>
+                            <label for="email" class="sr-only">Email address</label>
+                            <input id="email" name="email" type="email" autocomplete="email" required 
+                                   class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                   placeholder="Email address">
+                        </div>
+                        <div>
+                            <label for="password" class="sr-only">Password</label>
+                            <input id="password" name="password" type="password" autocomplete="current-password" required 
+                                   class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                   placeholder="Password">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <input id="remember-me" name="remember-me" type="checkbox" 
+                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                            <label for="remember-me" class="ml-2 block text-sm text-gray-900">
+                                Remember me
+                            </label>
+                        </div>
+
+                        <div class="text-sm">
+                            <a href="#" class="font-medium text-blue-600 hover:text-blue-500">
+                                Forgot your password?
+                            </a>
+                        </div>
+                    </div>
+
+                    <div>
+                        <button type="submit" 
+                                class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                            <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                                <i class="fas fa-sign-in-alt text-blue-500 group-hover:text-blue-400"></i>
+                            </span>
+                            Sign in
+                        </button>
+                    </div>
+
+                    <div class="text-center">
+                        <p class="text-sm text-gray-600">
+                            Don't have an account? 
+                            <a href="#" onclick="showSection('signup')" class="font-medium text-blue-600 hover:text-blue-500">
+                                Sign up now
+                            </a>
+                        </p>
+                    </div>
+                </form>
+                
+                <div id="auth-message" class="hidden p-4 rounded-lg"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Signup Section -->
+    <div id="signup-section" class="auth-bg hidden">
+        <div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+            <div class="max-w-md w-full space-y-8 bg-white p-10 rounded-xl shadow-2xl">
+                <div>
+                    <div class="flex justify-center">
+                        <i class="fas fa-graduation-cap text-4xl text-blue-600"></i>
+                    </div>
+                    <h2 class="mt-6 text-center text-3xl font-extrabold text-gray-900">
+                        Create your account
+                    </h2>
+                    <p class="mt-2 text-center text-sm text-gray-600">
+                        Start your personalized learning journey today
+                    </p>
+                </div>
+                <form class="mt-8 space-y-6" id="signup-form">
+                    <div class="rounded-md shadow-sm -space-y-px">
+                        <div>
+                            <label for="name" class="sr-only">Full Name</label>
+                            <input id="name" name="name" type="text" autocomplete="name" required 
+                                   class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                   placeholder="Full Name">
+                        </div>
+                        <div>
+                            <label for="signup-email" class="sr-only">Email address</label>
+                            <input id="signup-email" name="email" type="email" autocomplete="email" required 
+                                   class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                   placeholder="Email address">
+                        </div>
+                        <div>
+                            <label for="signup-password" class="sr-only">Password</label>
+                            <input id="signup-password" name="password" type="password" autocomplete="new-password" required 
+                                   class="appearance-none rounded-none relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
+                                   placeholder="Password (min. 6 characters)">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center">
+                        <input id="terms" name="terms" type="checkbox" required
+                               class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
+                        <label for="terms" class="ml-2 block text-sm text-gray-900">
+                            I agree to the <a href="#" class="text-blue-600 hover:text-blue-500">Terms</a> and <a href="#" class="text-blue-600 hover:text-blue-500">Privacy Policy</a>
+                        </label>
+                    </div>
+
+                    <div>
+                        <button type="submit" 
+                                class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150 ease-in-out">
+                            <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                                <i class="fas fa-user-plus text-blue-500 group-hover:text-blue-400"></i>
+                            </span>
+                            Create Account
+                        </button>
+                    </div>
+
+                    <div class="text-center">
+                        <p class="text-sm text-gray-600">
+                            Already have an account? 
+                            <a href="#" onclick="showSection('login')" class="font-medium text-blue-600 hover:text-blue-500">
+                                Sign in
+                            </a>
+                        </p>
+                    </div>
+                </form>
+                
+                <div id="signup-message" class="hidden p-4 rounded-lg"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App Content (Hidden by default until authenticated) -->
+    <div id="app-content" class="hidden">
+        <!-- Main Content -->
+        <div class="container mx-auto px-4 py-8">
+            <!-- Dashboard Section (Default View) -->
+            <div id="dashboard-section">
+                <!-- Hero Section -->
+                <div class="bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl p-8 text-white shadow-lg mb-12">
+                    <div class="max-w-3xl">
+                        <h2 class="text-4xl font-bold mb-4">Your Personalized Learning Journey</h2>
+                        <p class="text-xl mb-6">AI-powered learning path recommendations based on your goals, performance, and preferences.</p>
+                        <button onclick="scrollToRecommendations()" class="bg-white text-blue-600 font-semibold px-6 py-3 rounded-lg shadow-md hover:bg-gray-100 transition">
+                            Get Started <i class="ml-2 fas fa-arrow-down"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Dashboard Content -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                    <!-- Learning Progress -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="text-xl font-semibold mb-4">Learning Progress</h3>
+                        <div class="h-64">
+                            <canvas id="progressChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Weekly Progress -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="text-xl font-semibold mb-4">Weekly Progress</h3>
+                        <div class="h-64">
+                            <canvas id="weeklyChart"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Deadlines -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h3 class="text-xl font-semibold mb-4">Upcoming Deadlines</h3>
+                        <div id="deadlines-container" class="space-y-3">
+                            <div class="flex justify-center items-center h-32">
+                                <i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Skills Assessment -->
+                <div class="bg-white p-6 rounded-xl shadow-md mb-12">
+                    <h3 class="text-2xl font-semibold mb-6">Skills Assessment</h3>
+                    <div id="skills-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="flex justify-center items-center h-32">
+                            <i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Recommendation Section -->
+                <div id="recommendations-section" class="bg-white rounded-xl shadow-md p-6 mb-12">
+                    <h3 class="text-2xl font-semibold mb-6">Get Personalized Recommendations</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <form id="recommendation-form">
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 mb-2" for="subjects">Subjects of Interest</label>
+                                    <input type="text" id="subjects" class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500" placeholder="e.g., Python, Machine Learning, Statistics">
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 mb-2" for="goals">Learning Goals</label>
+                                    <select id="goals" class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">Select your goal</option>
+                                        <option value="career">Career Advancement</option>
+                                        <option value="course">Course Supplement</option>
+                                        <option value="skill">Skill Development</option>
+                                        <option value="project">Project Support</option>
+                                    </select>
+                                </div>
+                                <div class="mb-4">
+                                    <label class="block text-gray-700 mb-2" for="style">Learning Style</label>
+                                    <select id="style" class="w-full px-4 py-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500">
+                                        <option value="">Select your style</option>
+                                        <option value="visual">Visual</option>
+                                        <option value="auditory">Auditory</option>
+                                        <option value="reading">Reading/Writing</option>
+                                        <option value="kinesthetic">Hands-on</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition w-full">
+                                    Generate Recommendations
+                                </button>
+                            </form>
+                        </div>
+                        <div>
+                            <div class="bg-gray-50 rounded-lg p-6 h-full">
+                                <h4 class="font-semibold mb-4">Your AI Recommendations</h4>
+                                <div id="ai-recommendations" class="text-gray-500 italic">
+                                    Submit your preferences to get personalized learning recommendations...
+                                </div>
+                            </div>
+                            </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Learning Paths Section (Hidden by default) -->
+            <div id="learning-paths-section" class="hidden">
+                <div class="bg-white p-6 rounded-xl shadow-md mb-8">
+                    <h2 class="text-3xl font-semibold mb-6">Your Learning Paths</h2>
+                    <div id="paths-container" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="flex justify-center items-center h-32">
+                            <i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Resources Section (Hidden by default) -->
+            <div id="resources-section" class="hidden">
+                <div class="bg-white p-6 rounded-xl shadow-md mb-8">
+                    <h2 class="text-3xl font-semibold mb-6">Learning Resources</h2>
+                    <div class="flex space-x-4 mb-6">
+                        <button class="tab-button active px-4 py-2 rounded-lg border" data-category="all">All Resources</button>
+                        <button class="tab-button px-4 py-2 rounded-lg border" data-category="python">Python</button>
+                        <button class="tab-button px-4 py-2 rounded-lg border" data-category="machine_learning">Machine Learning</button>
+                        <button class="tab-button px-4 py-2 rounded-lg border" data-category="web_development">Web Development</button>
+                    </div>
+                    <div id="resources-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div class="flex justify-center items-center h-32">
+                            <i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Profile Section (Hidden by default) -->
+            <div id="profile-section" class="hidden">
+                <div class="bg-white p-6 rounded-xl shadow-md mb-8">
+                    <h2 class="text-3xl font-semibold mb-6">Your Profile</h2>
+                    <div id="profile-container" class="max-w-2xl">
+                        <div class="flex justify-center items-center h-32">
+                            <i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white py-12">
+            <div class="container mx-auto px-4">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div>
+                        <h4 class="text-xl font-semibold mb-4">Perspective</h4>
+                        <p class="text-gray-400">AI-powered personalized learning path recommendations for students.</p>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-semibold mb-4">Features</h4>
+                        <ul class="space-y-2 text-gray-400">
+                            <li><a href="#" onclick="showSection('dashboard')" class="hover:text-white">Learning Paths</a></li>
+                            <li><a href="#" onclick="showSection('resources')" class="hover:text-white">Resource Discovery</a></li>
+                            <li><a href="#" onclick="showSection('dashboard')" class="hover:text-white">Progress Tracking</a></li>
+                            <li><a href="#" onclick="showSection('dashboard')" class="hover:text-white">Skill Assessment</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-semibold mb-4">Technology</h4>
+                        <ul class="space-y-2 text-gray-400">
+                            <li>LangChain</li>
+                            <li>ChromaDB</li>
+                            <li>Python</li>
+                            <li>LLM Integration</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="text-lg font-semibold mb-4">Connect</h4>
+                        <div class="flex space-x-4">
+                            <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-twitter fa-lg"></i></a>
+                            <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-linkedin fa-lg"></i></a>
+                            <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-github fa-lg"></i></a>
+                            <a href="#" class="text-gray-400 hover:text-white"><i class="fab fa-discord fa-lg"></i></a>
+                        </div>
+                    </div>
+                </div>
+                <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
+                    <p>&copy; 2023 Perspective. All rights reserved.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
