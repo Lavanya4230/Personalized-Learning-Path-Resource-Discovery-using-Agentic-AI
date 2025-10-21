@@ -229,59 +229,13 @@ def token_required(f):
 def serve_frontend():
     return send_from_directory(app.static_folder, 'index.html')
 
-# Serve auth pages
-@app.route('/auth/login')
-def serve_login_page():
+# Serve all frontend routes - ADDED CATCH-ALL ROUTE
+@app.route('/<path:path>')
+def serve_static(path):
+    if path.startswith('api/'):
+        # Let API routes handle these
+        return jsonify({"error": "API endpoint not found", "success": False}), 404
     return send_from_directory(app.static_folder, 'index.html')
-
-@app.route('/auth/signup')
-def serve_signup_page():
-    return send_from_directory(app.static_folder, 'index.html')
-
-# Serve other pages
-@app.route('/dashboard')
-def serve_dashboard_page():
-    return send_from_directory(app.static_folder, 'index.html')
-
-@app.route('/learning-paths')
-def serve_learning_paths_page():
-    return send_from_directory(app.static_folder, 'index.html')
-
-@app.route('/resources')
-def serve_resources_page():
-    return send_from_directory(app.static_folder, 'index.html')
-
-@app.route('/profile')
-def serve_profile_page():
-    return send_from_directory(app.static_folder, 'index.html')
-
-@app.route('/recommendations')
-def serve_recommendations_page():
-    return send_from_directory(app.static_folder, 'index.html')
-
-# Resource redirect endpoint
-@app.route('/api/resource/redirect')
-@token_required
-def redirect_to_resource(current_user):
-    title = request.args.get('title')
-    category = request.args.get('category')
-    
-    if not title or not category:
-        return jsonify({"error": "Title and category are required", "success": False}), 400
-    
-    # Find the resource URL
-    resource_url = None
-    if category in user_data_templates["resources"]:
-        for resource in user_data_templates["resources"][category]:
-            if resource["title"] == title:
-                resource_url = resource["url"]
-                break
-    
-    if not resource_url:
-        return jsonify({"error": "Resource not found", "success": False}), 404
-    
-    # Redirect to the resource URL
-    return redirect(resource_url)
 
 # Auth Routes
 @app.route('/api/auth/signup', methods=['POST'])
