@@ -8,7 +8,7 @@ let currentUser = null;
 // API Configuration
 const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' 
     ? 'http://localhost:5000/api' 
-    : 'https://personalized-learning-path-resource-i5j8.onrender.com'; // Replace with your actual backend URL
+    : 'https://personalized-learning-path-resource-i5j8.onrender.com/api'; // Added /api at the end
 
 // Check authentication status on page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -26,7 +26,49 @@ document.addEventListener('DOMContentLoaded', function() {
     if (signupForm) {
         signupForm.addEventListener('submit', handleSignup);
     }
+    
+    // Set up navigation event listeners - MOVED HERE FROM showApp()
+    setupNavigation();
 });
+
+// Set up navigation event listeners
+function setupNavigation() {
+    // Main app navigation
+    const dashboardBtn = document.getElementById('dashboard-btn');
+    const learningPathsBtn = document.getElementById('learning-paths-btn');
+    const resourcesBtn = document.getElementById('resources-btn');
+    const profileBtn = document.getElementById('profile-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+    
+    // Auth navigation
+    const showSignupBtn = document.getElementById('show-signup');
+    const showLoginBtn = document.getElementById('show-login');
+    
+    // Set up main navigation
+    if (dashboardBtn) {
+        dashboardBtn.addEventListener('click', () => showSection('dashboard'));
+    }
+    if (learningPathsBtn) {
+        learningPathsBtn.addEventListener('click', () => showSection('learning-paths'));
+    }
+    if (resourcesBtn) {
+        resourcesBtn.addEventListener('click', () => showSection('resources'));
+    }
+    if (profileBtn) {
+        profileBtn.addEventListener('click', () => showSection('profile'));
+    }
+    if (logoutBtn) {
+        logoutBtn.addEventListener('click', logout);
+    }
+    
+    // Set up auth navigation
+    if (showSignupBtn) {
+        showSignupBtn.addEventListener('click', () => showSection('signup'));
+    }
+    if (showLoginBtn) {
+        showLoginBtn.addEventListener('click', () => showSection('login'));
+    }
+}
 
 // Check if user is authenticated
 function checkAuthStatus() {
@@ -82,18 +124,26 @@ function showApp() {
         recommendationForm.addEventListener('submit', handleRecommendationForm);
     }
     
-    // Set up tab buttons for resources
-    document.querySelectorAll('.tab-button').forEach(button => {
-        button.addEventListener('click', function() {
-            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            this.classList.add('active');
-            renderResources(this.dataset.category);
+    // Set up tab buttons for resources - ADDED NULL CHECK
+    const tabButtons = document.querySelectorAll('.tab-button');
+    if (tabButtons.length > 0) {
+        tabButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                this.classList.add('active');
+                renderResources(this.dataset.category);
+            });
         });
-    });
+    }
+    
+    // Show dashboard by default
+    showSection('dashboard');
 }
 
 // Show specific section
 function showSection(sectionName) {
+    console.log('Showing section:', sectionName); // Debug log
+    
     // Hide all sections first
     const sections = ['login', 'signup', 'dashboard', 'learning-paths', 'resources', 'profile'];
     sections.forEach(section => {
@@ -107,7 +157,13 @@ function showSection(sectionName) {
     const selectedSection = document.getElementById(`${sectionName}-section`);
     if (selectedSection) {
         selectedSection.classList.remove('hidden');
+        console.log('Section shown successfully:', sectionName); // Debug log
+    } else {
+        console.error('Section not found:', sectionName); // Debug log
     }
+    
+    // Update active nav item
+    updateActiveNav(sectionName);
     
     // Load data if needed
     if (sectionName === 'learning-paths' && !learningPathsData) {
@@ -116,6 +172,37 @@ function showSection(sectionName) {
         loadResources();
     } else if (sectionName === 'profile' && !profileData) {
         loadProfile();
+    } else if (sectionName === 'dashboard') {
+        loadDashboard(); // Reload dashboard when showing it
+    }
+}
+
+// Update active navigation item
+function updateActiveNav(activeSection) {
+    const navItems = {
+        'dashboard': 'dashboard-btn',
+        'learning-paths': 'learning-paths-btn',
+        'resources': 'resources-btn',
+        'profile': 'profile-btn'
+    };
+    
+    // Remove active class from all nav items
+    Object.values(navItems).forEach(itemId => {
+        const element = document.getElementById(itemId);
+        if (element) {
+            element.classList.remove('bg-blue-700', 'text-white');
+            element.classList.add('text-blue-100', 'hover:bg-blue-700');
+        }
+    });
+    
+    // Add active class to current nav item
+    const activeNavId = navItems[activeSection];
+    if (activeNavId) {
+        const activeElement = document.getElementById(activeNavId);
+        if (activeElement) {
+            activeElement.classList.remove('text-blue-100', 'hover:bg-blue-700');
+            activeElement.classList.add('bg-blue-700', 'text-white');
+        }
     }
 }
 
